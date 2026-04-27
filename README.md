@@ -112,7 +112,7 @@ python3 ingest.py  # pulls data from yfinance, caches to data/crypto_px.pkl
 
 ## Caveats
 
-- Signal frequency is low for large-caps (BTC ~2 trades/year per signal); statistical power is largely driven by mid-cap coins
-- Sample period (2019–2026) is predominantly bullish; excess returns control for this but out-of-sample validation is needed
+- Signal frequency is low for large-caps (BTC ~2 trades/year); statistical power is largely driven by mid-cap coins
+- Sample period (2019–2026) is predominantly bullish
 - No position sizing optimization or leverage applied
-- Trade return distribution is right-skewed (median +1.14%, mean +3.28%, max +88.62%); a small number of large bounces contribute meaningfully to aggregate performance
+- Trade return distribution is right-skewed (median +1.14%, mean +3.28%, max +88.62%). A small number of large bounces contribute meaningfully
