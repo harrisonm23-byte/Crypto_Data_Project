@@ -1,4 +1,4 @@
-# Cryptocurrency Volume-Spike Research
+# Crypto Volume-Spike Event Study
 
 Exploratory quant research on cryptocurrency pricing data — measuring the relationship between anomalous volume spikes and forward returns across major cryptocurrencies.
 
@@ -40,6 +40,21 @@ Two distinct signals:
 - **Down-spike reversal:** Short-term mean-reversion, peaks at day 2 (t=3.40), decays to zero by day 25.
 - **Up-spike momentum:** Persistent continuation, t-stats above 2.0 from day 5 onward.
 
+### Direct Signal Test (spike vs non-spike holding period returns)
+
+Spike-day H-day returns compared against all non-spike H-day returns (spike observations excluded from the population). Welch's t-test and z-test. Returns are gross (pre-transaction costs) — the backtest results below apply 20 bps round-trip costs to confirm tradeability.
+
+  | Signal | Period | Non-Spike Mean | Spike Mean | Excess | t-stat | p-val |
+  |--------|--------|---------------|-----------|--------|--------|-------|
+  | down_H2 | Train (2019–2022) | 0.59% | 4.77% | +4.18% | **3.44** | 0.0008 |
+  | up_H10 | Train (2019–2022) | 3.43% | 10.30% | +6.87% | **2.22** | 0.028 |
+  | down_H2 | Validation (2023+) | 0.24% | 2.39% | +2.15% | **3.45** | 0.0007 |
+  | up_H10 | Validation (2023+) | 1.32% | 6.88% | +5.57% | **3.10** | 0.002 |
+  | down_H2 | Full | 0.42% | 3.48% | +3.06% | **4.67** | 0.000 |
+  | up_H10 | Full | 2.44% | 8.55% | +6.11% | **3.46** | 0.001 |
+
+  Both signals are statistically significant in train and validation periods independently. Spike observations are excluded from the population to ensure a clean comparison.
+
 ### Backtest Results (net of 20 bps transaction costs)
 
 | Strategy | Trades | Ann Return | Ann Vol | Sharpe | Max DD | Hit Rate |
@@ -47,6 +62,39 @@ Two distinct signals:
 | Down-spike H=2 | 314 | 1.35% | 1.15% | 1.18 | -1.31% | 58.6% |
 | Up-spike H=10 | 324 | 3.02% | 2.00% | 1.51 | -1.87% | 55.2% |
 | Combined 50/50 | 638 | 2.21% | 1.34% | 1.65 | -1.08% | 56.9% |
+
+### Train/Validation Split
+
+  Parameters discovered on the training set (2019–2022), then evaluated out-of-sample on the validation set (2023–present) with no changes to signal logic, thresholds, or hold periods.
+
+  | Strategy | Period | Trades | Sharpe | Ann Return | Hit Rate | Alpha t-stat |
+  |----------|--------|--------|--------|-----------|----------|-------------|
+  | Down-spike H=2 | Train (2019–2022) | 144 | 1.22 | 1.61% | 59.0% | 2.16 |
+  | Down-spike H=2 | **Validation (2023+)** | 170 | **1.15** | 1.10% | 58.2% | 1.55 |
+  | Up-spike H=10 | Train (2019–2022) | 158 | 1.50 | 3.42% | 56.3% | 2.54 |
+  | Up-spike H=10 | **Validation (2023+)** | 166 | **1.58** | 2.90% | 54.2% | 2.13 |
+  | Combined 50/50 | Train (2019–2022) | 302 | 1.65 | 2.53% | 57.6% | 2.85 |
+  | Combined 50/50 | **Validation (2023+)** | 336 | **1.73** | 2.01% | 56.2% |2.40 |
+
+  Sharpe ratios and hit rates are stable or improved out-of-sample. The 50/50 weighting was set a priori (not optimized), avoiding look-ahead bias.
+
+### Alpha / Beta vs BTC
+
+  Computed via statsmodels OLS regression with proper standard errors on the intercept.
+
+  | Strategy | Period | Daily Alpha (ann) | Alpha t-stat | Trade Alpha | Trade Alpha t |
+  |----------|--------|------------------|-------------|-------------|--------------|
+  | Down-spike H=2 | Full | 1.12% | **2.69** | 2.34% | **3.83** |
+  | Down-spike H=2 | Train | 1.40% | **2.16** | 4.27% | **3.76** |
+  | Down-spike H=2 | Validation | 0.79% | 1.55 | 0.62% | 1.13 |
+  | Up-spike H=10 | Full | 2.31% | **3.33** | 5.47% | **3.34** |
+  | Up-spike H=10 | Train | 2.73% | **2.54** | 7.76% | **2.69** |
+  | Up-spike H=10 | Validation | 1.97% | **2.13** | 2.89% | 1.79 |
+  | Combined 50/50 | Full | 1.73% | **3.73** | 3.89% | **4.42** |
+  | Combined 50/50 | Train | 2.07% | **2.85** | 6.08% | **3.81** |
+  | Combined 50/50 | Validation | 1.38% | **2.40** | 1.63% | 1.94 |
+
+  Daily beta is near zero (~0.01) across all strategies, confirming returns are largely uncorrelated with BTC at the portfolio level.
 
 ### Trade Frequency
 
@@ -91,6 +139,7 @@ For large-cap coins, volume always returns to its 30-day mean within 60 days (ze
 └── output/
     ├── backtest_report.txt        # Full results report
     ├── backtest_metrics.csv       # Strategy metrics (machine-readable)
+    ├── signal_test_results.csv    # Direct signal test results
     ├── strategy_comparison.png    # P&L chart (all strategies)
     ├── pnl_curve.png              # P&L chart (down-spike H=2)
     ├── trades.csv                 # Per-trade detail (down-spike H=2)
@@ -101,7 +150,7 @@ For large-cap coins, volume always returns to its 30-day mean within 60 days (ze
 ## Setup
 
 ```bash
-pip install yfinance pandas numpy scipy matplotlib
+pip install yfinance pandas numpy scipy matplotlib statsmodels
 python3 ingest.py  # pulls data from yfinance, caches to data/crypto_px.pkl
 ```
 
