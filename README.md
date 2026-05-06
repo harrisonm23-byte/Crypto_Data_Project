@@ -1,4 +1,4 @@
-# Crypto Volume-Spike Event Study
+# Crypto Volume-Spike Research
 
 Exploratory quant research on cryptocurrency pricing data — measuring the relationship between anomalous volume spikes and forward returns across major cryptocurrencies.
 
